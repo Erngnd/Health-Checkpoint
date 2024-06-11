@@ -4,6 +4,7 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer, WordNetLemmatizer
+import time
 
 # Downloads NLTK data files (only need to run this once)
 nltk.download('punkt')
@@ -32,19 +33,50 @@ def get_department(complaint):
     tokens = preprocess_text(complaint)
     
     rules = {
-        "Cardiology": ["chest", "pain", "heart", "palpit"],
-        "General Medicine": ["cough", "fever", "fatigu"],
-        "Dermatology": ["rash", "itch", "skin"],
-        "Orthopedics": ["broken", "bone", "sprain", "joint", "pain"],
-        "Gastroenterology": ["stomach", "pain", "digest", "abdomin"]
+         "Anesthesiology": ["pain", "surgery", "anesthesia"],
+        "Cardiology": ["chest", "pain", "heart", "palpitation", "shortness of breath", "fatigue", "dizziness", "swelling"],
+        "Dermatology": ["rash", "itch", "skin", "acne", "eczema", "psoriasis", "mole", "lesion"],
+        "Emergency Medicine": ["severe", "pain", "trauma", "sudden", "difficulty breathing", "chest pain"],
+        "Endocrinology": ["fatigue", "weight", "urination", "thirst", "hair loss", "temperature"],
+        "Family Medicine": ["general", "routine", "preventive", "non-specific"],
+        "Gastroenterology": ["stomach", "pain", "digest", "abdominal", "bloat", "diarrhea", "constipation", "heartburn", "nausea", "vomiting", "stool"],
+        "Geriatrics": ["memory", "mobility", "incontinence", "frailty"],
+        "Hematology": ["bruising", "bleeding", "fatigue", "pallor", "infections", "lymph nodes"],
+        "Infectious Disease": ["fever", "chills", "sweats", "cough", "weight loss", "rash", "travel"],
+        "Internal Medicine": ["chronic", "hypertension", "diabetes", "fatigue"],
+        "Medical Genetics": ["genetic", "birth defect", "developmental", "features"],
+        "Nephrology": ["swelling", "urine", "blood pressure", "fatigue"],
+        "Neurology": ["headache", "seizure", "numbness", "tingling", "weakness", "dizziness", "balance", "memory"],
+        "Obstetrics and Gynecology (OB/GYN)": ["period", "pelvic", "pregnancy", "menopause"],
+        "Oncology": ["weight loss", "fatigue", "lump", "skin", "pain"],
+        "Ophthalmology": ["vision", "eye", "pain", "redness", "floaters", "double vision", "loss"],
+        "Orthopedics": ["joint", "pain", "back", "fracture", "sprain", "arthritis", "muscle", "motion"],
+        "Otolaryngology (ENT)": ["ear", "hearing", "sinus", "throat", "dizziness", "snoring", "voice"],
+        "Pediatrics": ["child", "fever", "cough", "rash", "growth", "developmental"],
+        "Physical Medicine and Rehabilitation (PM&R)": ["chronic pain", "mobility", "recovery", "injury", "muscle"],
+        "Psychiatry": ["depression", "anxiety", "mood", "sleep", "hallucinations", "suicidal"],
+        "Pulmonology": ["cough", "shortness of breath", "wheezing", "chest pain", "respiratory"],
+        "Rheumatology": ["joint pain", "swelling", "stiffness", "fatigue", "autoimmune", "muscle"],
+        "Surgery": ["surgical", "appendicitis", "hernia", "trauma", "cancer"],
+        "Urology": ["urinary", "blood", "pelvic pain", "erectile", "incontinence"]
+
     }
     
-    for department, keywords in rules.items():
-        for keyword in keywords:
-            if keyword in tokens:
-                return department
-                
-    return "General Consultation"
+    department_scores = {department: 0 for department in rules}
+    
+    start_time = time.time()  # Record start time
+    
+    for symptom in tokens:
+        for department, keywords in rules.items():
+            if symptom in keywords:
+                department_scores[department] += 1
+    
+    end_time = time.time()  # Record end time
+    execution_time = end_time - start_time  # Calculate execution time
+    
+    most_matched_department = max(department_scores, key=department_scores.get)
+    
+    return most_matched_department, execution_time
 
 # Function to handle the submit button click event
 def on_submit():
@@ -53,8 +85,9 @@ def on_submit():
         messagebox.showwarning("Input Error", "Please enter your symptoms or complaint.")
         return
 
-    department = get_department(complaint)
+    department, execution_time = get_department(complaint)
     result_label.config(text=f"Based on your symptoms, you should visit the {department} department.")
+    performance_label.config(text=f"Execution Time: {execution_time:.6f} seconds")
 
 # Initializes the main application window
 root = tk.Tk()
@@ -74,5 +107,10 @@ submit_button.pack(pady=10)
 result_label = tk.Label(root, text="")
 result_label.pack(pady=10)
 
+# Creates and place the performance label
+performance_label = tk.Label(root, text="")
+performance_label.pack(pady=5)
+
 # Starts the Tkinter event loop
 root.mainloop()
+
